@@ -1,0 +1,36 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+ENV/
+env/
+
+# Video files
+*.mp4
+*.mp3
+*.wav
+temp/
+temp_edit/
+temp_outro_check/
+output/
+!output/.gitkeep
+
+# CSV data files (if large)
+*.csv
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log

@@ -1,0 +1,2 @@
+file 'output/final_9x16.mp4'
+file 'output/outro_logo_9x16.mp4'
