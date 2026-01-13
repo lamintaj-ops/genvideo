@@ -1,4 +1,7 @@
 flask==3.0.0
+gunicorn==21.2.0
 pandas==2.1.4
+numpy==1.26.4
 requests==2.31.0
 tqdm==4.66.1
+opencv-python-headless==4.8.1.78
