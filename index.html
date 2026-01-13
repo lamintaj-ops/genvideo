@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>🎬 Aquaverse Video Generator</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎬</text></svg>">
     <style>
         * {
             margin: 0;
@@ -31,14 +32,25 @@
         }
 
         .header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
+            font-size: 2.8rem;
+            margin-bottom: 5px;
             text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
         }
 
         .header p {
-            font-size: 1.1rem;
-            opacity: 0.95;
+            font-size: 1rem;
+            opacity: 0.9;
+            font-weight: 300;
+        }
+
+        .step-indicator {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            margin-bottom: 10px;
+            font-weight: 500;
         }
 
         .card {
@@ -107,26 +119,48 @@
 
         .btn {
             width: 100%;
-            padding: 16px;
+            padding: 20px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
-            border-radius: 10px;
-            font-size: 1.1rem;
-            font-weight: bold;
+            border-radius: 12px;
+            font-size: 1.2rem;
+            font-weight: 700;
             cursor: pointer;
             transition: all 0.3s;
-            margin-top: 15px;
+            margin-top: 20px;
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .btn:hover::after {
+            width: 300px;
+            height: 300px;
         }
 
         .btn:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+            transform: translateY(-3px);
+            box-shadow: 0 15px 35px rgba(102, 126, 234, 0.5);
         }
 
         .btn:disabled {
             opacity: 0.6;
             cursor: not-allowed;
+            box-shadow: none;
         }
 
         .status-box {
@@ -189,6 +223,48 @@
             font-size: 0.85rem;
             color: #999;
             text-align: right;
+        }
+
+        .prompt-box {
+            margin-top: 20px;
+            padding: 20px;
+            background: linear-gradient(135deg, #f0f4ff 0%, #fff 100%);
+            border-radius: 12px;
+            border: 3px solid #667eea;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.1);
+            animation: slideIn 0.4s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .prompt-label {
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 1.05rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .prompt-text {
+            font-size: 0.95rem;
+            color: #444;
+            line-height: 1.7;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
         }
 
         .download-box {
@@ -294,18 +370,21 @@
 
         .download-link {
             display: inline-block;
-            padding: 10px 20px;
-            background: #28a745;
+            padding: 12px 30px;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
             color: white;
             text-decoration: none;
-            border-radius: 6px;
-            font-weight: bold;
+            border-radius: 8px;
+            font-weight: 700;
+            font-size: 0.95rem;
             transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
         }
 
         .download-link:hover {
-            background: #218838;
-            transform: translateY(-2px);
+            background: linear-gradient(135deg, #218838 0%, #1aa179 100%);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(40, 167, 69, 0.4);
         }
 
         .btn-reset {
@@ -456,24 +535,45 @@
         }
 
         .prompt-box {
-            margin-top: 15px;
-            padding: 15px;
-            background: #f0f4ff;
-            border-radius: 8px;
-            border: 2px dashed #667eea;
+            margin-top: 20px;
+            padding: 20px;
+            background: linear-gradient(135deg, #f0f4ff 0%, #fff 100%);
+            border-radius: 12px;
+            border: 3px solid #667eea;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.1);
+            animation: slideIn 0.4s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .prompt-label {
-            font-weight: bold;
+            font-weight: 700;
             color: #667eea;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
+            font-size: 1.05rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .prompt-text {
             font-size: 0.95rem;
-            color: #333;
-            line-height: 1.6;
-            margin-bottom: 10px;
+            color: #444;
+            line-height: 1.7;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
         }
 
         .btn-copy {
@@ -523,7 +623,7 @@
     <div class="container">
         <div class="header">
             <h1>🎬 Aquaverse Video Generator</h1>
-            <p>Automatically Generate Videos from Prompts</p>
+            <p>Pick a theme → Generate → Download</p>
         </div>
 
         <!-- Input Card -->
@@ -531,8 +631,8 @@
             <!-- Prompt Generator Section -->
             <div class="prompt-generator">
                 <div class="section-title" style="color: #8b4513;">
-                    <span>✨</span>
-                    <span>Prompt Generator - Choose Your Story</span>
+                    <span>📝</span>
+                    <span>Choose Your Theme</span>
                 </div>
 
                 <div class="theme-grid">
@@ -575,45 +675,45 @@
 
                 <!-- Ready-to-Use Prompts -->
                 <div id="prompt-box-jumanji" class="prompt-box" style="display:none;">
-                    <div class="prompt-label">📝 Ready-to-Use Prompt:</div>
+                    <div class="prompt-label">✅ Your Prompt</div>
                     <div class="prompt-text" id="prompt-jumanji">Action video 15s in Jumanji zone, start with wide shot of slide tower, then fast sliding down, big water splash close-up, ending with excited face laughing and screaming, high energy upbeat vibe.</div>
                     <button class="btn-copy" onclick="copyPrompt('jumanji')">📋 Copy</button>
-                    <button class="btn-use-prompt" onclick="useGeneratedPrompt('jumanji')">✅ Use This Prompt</button>
+                    <button class="btn-use-prompt" onclick="useGeneratedPrompt('jumanji')">Use This →</button>
                 </div>
 
                 <div id="prompt-box-family" class="prompt-box" style="display:none;">
-                    <div class="prompt-label">📝 Ready-to-Use Prompt:</div>
+                    <div class="prompt-label">✅ Your Prompt</div>
                     <div class="prompt-text" id="prompt-family">Family vlog 15s, Hotel Transylvania kids zone, parents holding hands with child, cute kid sliding on small slide, happy family playing in water together, warm sunlight, wholesome and cheerful.</div>
                     <button class="btn-copy" onclick="copyPrompt('family')">📋 Copy</button>
-                    <button class="btn-use-prompt" onclick="useGeneratedPrompt('family')">✅ Use This Prompt</button>
+                    <button class="btn-use-prompt" onclick="useGeneratedPrompt('family')">Use This →</button>
                 </div>
 
                 <div id="prompt-box-surf" class="prompt-box" style="display:none;">
-                    <div class="prompt-label">📝 Ready-to-Use Prompt:</div>
+                    <div class="prompt-label">✅ Your Prompt</div>
                     <div class="prompt-text" id="prompt-surf">Cool Flowrider surfing 15s, pro surfer doing tricks, cut to crowd cheering and drinking, slow motion water spray close-up, energetic party atmosphere, stylish edit.</div>
                     <button class="btn-copy" onclick="copyPrompt('surf')">📋 Copy</button>
-                    <button class="btn-use-prompt" onclick="useGeneratedPrompt('surf')">✅ Use This Prompt</button>
+                    <button class="btn-use-prompt" onclick="useGeneratedPrompt('surf')">Use This →</button>
                 </div>
 
                 <div id="prompt-box-chill" class="prompt-box" style="display:none;">
-                    <div class="prompt-label">📝 Ready-to-Use Prompt:</div>
+                    <div class="prompt-label">✅ Your Prompt</div>
                     <div class="prompt-text" id="prompt-chill">Lifestyle vacation 15s, close-up delicious food and burgers, cheering colorful drinks by the pool, relaxing in lazy river, chill and yummy vibe, no action.</div>
                     <button class="btn-copy" onclick="copyPrompt('chill')">📋 Copy</button>
-                    <button class="btn-use-prompt" onclick="useGeneratedPrompt('chill')">✅ Use This Prompt</button>
+                    <button class="btn-use-prompt" onclick="useGeneratedPrompt('chill')">Use This →</button>
                 </div>
 
                 <div id="prompt-box-ghostbusters" class="prompt-box" style="display:none;">
-                    <div class="prompt-label">📝 Ready-to-Use Prompt:</div>
+                    <div class="prompt-label">✅ Your Prompt</div>
                     <div class="prompt-text" id="prompt-ghostbusters">Ghostbusters zone adventure 15s, wide shot of spooky themed area with fog, kids exploring mysterious water features, sliding through ghost tubes with green lights, group having fun with Ghostbusters props, playful spooky vibe.</div>
                     <button class="btn-copy" onclick="copyPrompt('ghostbusters')">📋 Copy</button>
-                    <button class="btn-use-prompt" onclick="useGeneratedPrompt('ghostbusters')">✅ Use This Prompt</button>
+                    <button class="btn-use-prompt" onclick="useGeneratedPrompt('ghostbusters')">Use This →</button>
                 </div>
 
                 <div id="prompt-box-zombieland" class="prompt-box" style="display:none;">
-                    <div class="prompt-label">📝 Ready-to-Use Prompt:</div>
+                    <div class="prompt-label">✅ Your Prompt</div>
                     <div class="prompt-text" id="prompt-zombieland">Zombieland horror zone 15s, dark entrance with zombie decorations and suspense, thrilling fast slides with dramatic angles, intense water splash landing, survivors celebrating with adrenaline expressions, scary fun adventure.</div>
                     <button class="btn-copy" onclick="copyPrompt('zombieland')">📋 Copy</button>
-                    <button class="btn-use-prompt" onclick="useGeneratedPrompt('zombieland')">✅ Use This Prompt</button>
+                    <button class="btn-use-prompt" onclick="useGeneratedPrompt('zombieland')">Use This →</button>
                 </div>
 
                 <!-- Storyboards (Hidden) -->
@@ -735,14 +835,14 @@
             <hr style="margin: 30px 0; border: none; border-top: 2px solid #e0e0e0;">
 
             <div class="section-title">
-                <span>📝</span>
-                <span>Enter Your Prompt</span>
+                <span>✏️</span>
+                <span>Or Write Your Own</span>
             </div>
 
-            <textarea id="promptInput" placeholder="Example: Waterpark promo trailer, mix of everything: slides, surfing, food, and party, upbeat music, welcome to Aquaverse, 20 seconds"></textarea>
+            <textarea id="promptInput" placeholder="Describe your video here... (e.g., Family fun waterpark, slides and pools, 15 seconds)"></textarea>
 
             <div class="examples">
-                <p>💡 Example Prompts:</p>
+                <p>💡 Click to use:</p>
                 <div class="example-item" onclick="useExample(this)">
                     Family fun waterpark, slides and pools, happy vibes, 15 seconds
                 </div>
@@ -755,14 +855,18 @@
             </div>
 
             <button id="generateBtn" class="btn" onclick="startGeneration()">
-                🎥 Generate Video
+                <span style="position: relative; z-index: 1;">🎬 Generate My Video</span>
             </button>
+
+            <div style="text-align: center; margin-top: 15px; color: #999; font-size: 0.85rem;">
+                ⚡ Takes 30-60 seconds to generate
+            </div>
 
             <!-- Status Section -->
             <div id="statusBox" class="status-box hidden">
                 <div class="status-indicator">
                     <div id="spinner" class="spinner"></div>
-                    <span id="statusText" class="status-text">Preparing data...</span>
+                    <span id="statusText" class="status-text">Creating your video...</span>
                 </div>
                 <div id="statusMessage" class="status-message"></div>
                 <div class="progress-bar">
@@ -773,14 +877,14 @@
 
             <!-- Download Section -->
             <div id="downloadBox" class="download-box hidden">
-                <div class="download-title">✅ Completed!</div>
+                <div class="download-title">🎉 Your Video is Ready!</div>
                 
                 <!-- Video Preview -->
                 <div class="video-preview">
-                    <div class="video-preview-title">🎬 Preview</div>
+                    <div class="video-preview-title">Preview</div>
                     <div class="video-tabs">
-                        <button class="video-tab active" onclick="switchVideoPreview('916')">📱 9:16</button>
-                        <button class="video-tab" onclick="switchVideoPreview('169')">🖥️ 16:9</button>
+                        <button class="video-tab active" onclick="switchVideoPreview('916')">📱 Vertical</button>
+                        <button class="video-tab" onclick="switchVideoPreview('169')">🖥️ Landscape</button>
                     </div>
                     <div class="video-container">
                         <video id="videoPreview" class="video-player" controls>
@@ -792,17 +896,17 @@
 
                 <div class="download-grid">
                     <div class="download-item">
-                        <div class="download-label">📱 9:16</div>
-                        <div class="download-desc">Stories / TikTok</div>
-                        <a id="download916" href="#" class="download-link">⬇️ Download</a>
+                        <div class="download-label">📱 Vertical</div>
+                        <div class="download-desc">Stories / TikTok / Reels</div>
+                        <a id="download916" href="#" class="download-link">Download</a>
                     </div>
                     <div class="download-item">
-                        <div class="download-label">🖥️ 16:9</div>
-                        <div class="download-desc">YouTube / Feed</div>
-                        <a id="download169" href="#" class="download-link">⬇️ Download</a>
+                        <div class="download-label">🖥️ Landscape</div>
+                        <div class="download-desc">YouTube / Facebook</div>
+                        <a id="download169" href="#" class="download-link">Download</a>
                     </div>
                 </div>
-                <button class="btn btn-reset" onclick="resetForm()">🔄 Create New Video</button>
+                <button class="btn btn-reset" onclick="resetForm()">Create Another Video</button>
             </div>
         </div>
 
@@ -810,7 +914,7 @@
         <div class="card">
             <div class="section-title">
                 <span>📜</span>
-                <span>Recent Jobs</span>
+                <span>History</span>
             </div>
             <div id="jobsList" class="jobs-list">
                 <div style="text-align: center; color: #999; padding: 20px;">
@@ -853,10 +957,12 @@
             navigator.clipboard.writeText(promptText).then(() => {
                 const btn = event.currentTarget;
                 const originalText = btn.textContent;
-                btn.textContent = '✅ Copied!';
+                btn.textContent = '✅ Copied';
+                btn.style.background = '#28a745';
                 setTimeout(() => {
                     btn.textContent = originalText;
-                }, 2000);
+                    btn.style.background = '#667eea';
+                }, 1500);
             });
         }
 
@@ -884,13 +990,13 @@
             const prompt = document.getElementById('promptInput').value.trim();
             
             if (!prompt) {
-                alert('⚠️ Please enter a prompt');
+                alert('⚠️ Please enter a prompt first');
                 return;
             }
 
             const btn = document.getElementById('generateBtn');
             btn.disabled = true;
-            btn.textContent = '⏳ Sending request...';
+            btn.innerHTML = '<span style="position: relative; z-index: 1;">⏳ Creating...</span>';
 
             try {
                 const response = await fetch('/api/generate', {
@@ -902,7 +1008,7 @@
                 const data = await response.json();
                 
                 if (!response.ok) {
-                    throw new Error(data.error || 'เกิดข้อผิดพลาด');
+                    throw new Error(data.error || 'Something went wrong');
                 }
 
                 currentJobId = data.job_id;
@@ -918,7 +1024,7 @@
             } catch (error) {
                 alert('❌ ' + error.message);
                 btn.disabled = false;
-                btn.textContent = '🎥 Generate Video';
+                btn.innerHTML = '<span style="position: relative; z-index: 1;">🎬 Generate My Video</span>';
             }
         }
 
@@ -957,7 +1063,7 @@
                     // Reset button
                     const btn = document.getElementById('generateBtn');
                     btn.disabled = false;
-                    btn.textContent = '🎥 Generate Video';
+                    btn.innerHTML = '<span style="position: relative; z-index: 1;">🎬 Generate My Video</span>';
 
                     loadRecentJobs();
 
@@ -971,7 +1077,7 @@
                     
                     const btn = document.getElementById('generateBtn');
                     btn.disabled = false;
-                    btn.textContent = '🎥 Generate Video';
+                    btn.innerHTML = '<span style="position: relative; z-index: 1;">🎬 Generate My Video</span>';
                     
                 } else {
                     // Continue checking
