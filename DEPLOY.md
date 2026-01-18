@@ -10,7 +10,7 @@
 3. Service → `Settings` → `Domains` → open the generated URL
 
 ## Config used by this repo
-- System deps: `Aptfile` contains `ffmpeg` (Nixpacks installs it)
+- System deps (Python+FFmpeg): `nixpacks.toml` installs `python311` and `ffmpeg` via Nixpacks
 - Python deps: `requirements.txt`
 - Start command: `railway.json` / `Procfile`
   - `gunicorn -w 1 -k gthread -t 0 -b 0.0.0.0:$PORT web_app:app`

@@ -1,3 +1,15 @@
+---
+title: Aquaverse Video Generator
+emoji: 🎬
+colorFrom: blue
+colorTo: purple
+sdk: gradio
+sdk_version: 4.44.0
+app_file: app.py
+pinned: false
+license: mit
+---
+
 # 🎬 Aquaverse Video Generator
 
 AI-powered automatic video editing system for waterpark content. Generate professional video edits from simple text prompts.

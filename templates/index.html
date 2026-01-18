@@ -225,6 +225,54 @@
             text-align: right;
         }
 
+        .process-log {
+            margin-top: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 15px;
+            border-left: 4px solid #667eea;
+        }
+
+        .process-log-title {
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+        }
+
+        .log-entries {
+            max-height: 150px;
+            overflow-y: auto;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.8rem;
+            line-height: 1.4;
+        }
+
+        .log-entry {
+            padding: 2px 0;
+            color: #555;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+        }
+
+        .log-entry:last-child {
+            border-bottom: none;
+        }
+
+        .log-entry.highlight {
+            color: #667eea;
+            font-weight: 500;
+        }
+
+        .log-entry.progress-bar {
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            color: #28a745;
+            font-weight: 600;
+            background: rgba(40, 167, 69, 0.1);
+            padding: 4px 8px;
+            border-radius: 4px;
+            margin: 2px 0;
+        }
+
         .prompt-box {
             margin-top: 20px;
             padding: 20px;
@@ -1034,6 +1082,9 @@
             try {
                 const response = await fetch(`/api/status/${currentJobId}`);
                 const data = await response.json();
+
+                // Debug: Log the response
+                console.log('Status API Response:', data);
 
                 document.getElementById('statusText').textContent = data.message;
                 document.getElementById('statusMessage').textContent = `Prompt: ${data.prompt}`;

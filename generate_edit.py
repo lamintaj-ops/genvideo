@@ -32,14 +32,44 @@ OUTPUT_DIR.mkdir(exist_ok=True)
 TEMP_DIR.mkdir(exist_ok=True)
 
 # ======================
-# HELPER: Pick Random BGM
+# HELPER: Pick Random BGM (Download from GitHub for HuggingFace)
 # ======================
 def pick_bgm(vibe="upbeat"):
-    # พยายามหาเพลงใหม่ๆ ทุกครั้ง ถ้ามีหลายเพลง
+    """Download BGM from GitHub if not exists locally"""
+    import requests
+    
+    # BGM URLs from GitHub repo (public)
+    GITHUB_BGM_URLS = [
+        "https://raw.githubusercontent.com/lamintaj-ops/genvideo/main/bgm/RM-Ride%20the%20Sky-02.mp3",
+        "https://raw.githubusercontent.com/lamintaj-ops/genvideo/main/bgm/RM-Jump%20In-02.mp3",
+        "https://raw.githubusercontent.com/lamintaj-ops/genvideo/main/bgm/RM-No%20Rules%20Here-02.mp3",
+        "https://raw.githubusercontent.com/lamintaj-ops/genvideo/main/bgm/RM-Magic%20at%20Aquaverse-01.mp3",
+        "https://raw.githubusercontent.com/lamintaj-ops/genvideo/main/bgm/JT-Ready%20for%20the%20Ride%20%28Remix%29.mp3",
+    ]
+    
+    # Try local files first
     candidates = list(BGM_DIR.glob("*.mp3"))
-    if not candidates:
+    if candidates:
+        return random.choice(candidates)
+    
+    # Download from GitHub if no local files
+    BGM_DIR.mkdir(exist_ok=True)
+    try:
+        bgm_url = random.choice(GITHUB_BGM_URLS)
+        filename = bgm_url.split('/')[-1].replace('%20', ' ').replace('%28', '(').replace('%29', ')')
+        bgm_filename = BGM_DIR / filename
+        
+        if not bgm_filename.exists():
+            print(f"⬇️ Downloading BGM from GitHub: {filename}")
+            response = requests.get(bgm_url, timeout=30)
+            response.raise_for_status()
+            bgm_filename.write_bytes(response.content)
+            print(f"✅ BGM downloaded: {bgm_filename.name}")
+        
+        return bgm_filename
+    except Exception as e:
+        print(f"⚠️ Failed to download BGM: {e}")
         return None
-    return random.choice(candidates)
 
 # ======================
 # MAIN WORKFLOW
@@ -136,7 +166,7 @@ def main(prompt: str):
         print("Mixing Video + Music...")
         mix_video_music(graded, trimmed_bgm_wav, final_master)
     else:
-        print("⚠️ No BGM found. Output will be silent.")
+        print("⚠️ No BGM available. Video without background music.")
         shutil.copy(graded, final_master)
 
     # 7. Export Ratios
@@ -149,7 +179,21 @@ def main(prompt: str):
 
     from ffmpeg_utils import create_outro_sized, overlay_logo_scaled, concat_with_outro
 
-    logo_path = "assets/brand_logo.png"   # ตำแหน่งไฟล์โลโก้
+    logo_path = "assets/brand_logo.png"
+
+    # Create logo if not exists (for HuggingFace deployment)
+    if not Path(logo_path).exists():
+        from PIL import Image, ImageDraw, ImageFont
+        Path("assets").mkdir(exist_ok=True)
+        img = Image.new('RGBA', (800, 300), (0, 0, 0, 0))
+        draw = ImageDraw.Draw(img)
+        try:
+            font = ImageFont.truetype('arial.ttf', 80)
+        except:
+            font = ImageFont.load_default()
+        draw.text((50, 100), 'AQUAVERSE', fill=(43, 73, 126, 255), font=font)
+        img.save(logo_path)
+        print(f"✓ Created {logo_path}")
     outro_bg = OUTPUT_DIR / "outro_bg.mp4"
     outro_logo = OUTPUT_DIR / "outro_logo.mp4"
     final_with_outro = OUTPUT_DIR / "final_with_outro.mp4"
@@ -240,5 +284,20 @@ def main(prompt: str):
         print(f"{k}: {v}")
 
 if __name__ == "__main__":
-    prompt = input("ใส่ prompt: ").strip()
-    main(prompt)
+    import sys
+    
+    # Support both interactive and non-interactive modes
+    if len(sys.argv) > 1:
+        # Command-line argument mode (for HuggingFace/automated calls)
+        prompt = " ".join(sys.argv[1:]).strip()
+    elif not sys.stdin.isatty():
+        # Piped/redirected input mode (for subprocess)
+        prompt = sys.stdin.read().strip()
+    else:
+        # Interactive mode (original behavior)
+        prompt = input("ใส่ prompt: ").strip()
+    
+    if prompt:
+        main(prompt)
+    else:
+        print("❌ No prompt provided!")

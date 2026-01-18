@@ -1,15 +1,15 @@
-import subprocess
+﻿import subprocess
 from pathlib import Path
 import random
 import cv2
 import os
 
 def run(cmd):
-    # capture_output=True เพื่อดักจับ Error
+    # capture_output=True  Error
     process = subprocess.run(cmd, capture_output=True, text=True)
     
     if process.returncode != 0:
-        print(f"\n❌ FFmpeg Failed! Command: {' '.join(cmd[:5])}...")
+        print(f"\n FFmpeg Failed! Command: {' '.join(cmd[:5])}...")
         print("="*40)
         print(process.stderr)
         print("="*40)
@@ -57,6 +57,32 @@ def run(cmd):
 
 def safe(p):
     return str(p).replace("\\", "/")
+
+def low_resource_mode():
+    v = os.environ.get("VIDEOSCORE_LOW_RESOURCE", "").strip().lower()
+    if v in {"1", "true", "yes", "on"}:
+        return True
+    if v in {"0", "false", "no", "off"}:
+        return False
+
+    # Auto-enable on Railway-like environments unless explicitly disabled.
+    for k in (
+        "RAILWAY_ENVIRONMENT",
+        "RAILWAY_PROJECT_ID",
+        "RAILWAY_SERVICE_ID",
+        "RAILWAY_PUBLIC_DOMAIN",
+        "RAILWAY_STATIC_URL",
+    ):
+        if os.environ.get(k):
+            return True
+
+    return False
+
+def ffmpeg_resource_args():
+    # Limit threads to reduce RAM spikes / CPU contention in small containers.
+    if not low_resource_mode():
+        return []
+    return ["-threads", "1", "-filter_threads", "1"]
 
 # ---------------------------
 # 1) Read video duration
@@ -189,13 +215,14 @@ def cut_random_segment(input_path: Path, out_path: Path, seg_len=2.0, target_w: 
             jitter = random.uniform(-0.15, 0.15)
             start = max(0.0, min(smooth + jitter, dur - seg_len))
 
-    # 🔥 FIX: บังคับค่าทุกอย่างให้เท่ากันเป๊ะๆ เพื่อให้ Concat ง่าย
+    #  FIX:   Concat 
     # - scale=1920:1080 (HD)
-    # - setsar=1 (Pixel Aspect Ratio สี่เหลี่ยมจัตุรัส)
-    # - fps=30 (บังคับ Frame rate)
+    # - setsar=1 (Pixel Aspect Ratio )
+    # - fps=30 ( Frame rate)
     vf = f"scale={int(target_w)}:{int(target_h)}:force_original_aspect_ratio=increase,crop={int(target_w)}:{int(target_h)},fps=30,format=yuv420p,setsar=1"
     cmd = [
         "ffmpeg", "-y",
+        *ffmpeg_resource_args(),
         "-ignore_editlist", "1",
         "-ss", f"{start:.3f}",
         "-i", safe(input_path),
@@ -203,7 +230,7 @@ def cut_random_segment(input_path: Path, out_path: Path, seg_len=2.0, target_w: 
         "-vf", vf,
         *h264_video_args(quality="cut"),
         "-pix_fmt", "yuv420p",
-        "-an",               # ตัดเสียงทิ้งไปก่อน
+        "-an",               # 
         "-movflags", "+faststart",
         safe(out_path)
     ]
@@ -214,20 +241,20 @@ def cut_random_segment(input_path: Path, out_path: Path, seg_len=2.0, target_w: 
 # 3) Concatenate (Demuxer Method - Stable)
 # ---------------------------
 def concat_videos(file_list, output):
-    # สร้างไฟล์ list.txt
+    #  list.txt
     list_path = Path("concat_list.txt")
     with open(list_path, "w", encoding="utf-8") as f:
         for fp in file_list:
-            # ต้องใช้ path แบบ absolute หรือ relative ที่ถูกต้อง
+            #  path  absolute  relative 
             f.write(f"file '{safe(fp.resolve())}'\n")
 
-    # ใช้ -f concat ซึ่งเสถียรกว่า filter_complex มาก
+    #  -f concat  filter_complex 
     cmd = [
         "ffmpeg", "-y",
         "-f", "concat",
         "-safe", "0",
         "-i", safe(list_path),
-        "-c", "copy",  # Copy stream เลย เพราะเรา Normalize มาแล้ว (เร็วมาก)
+        "-c", "copy",  # Copy stream   Normalize  ()
         safe(output)
     ]
     run(cmd)
@@ -244,6 +271,7 @@ def concat_videos_smooth(file_list, output, transition_duration=0.0):
         # Single file - process with consistent settings
         cmd = [
             "ffmpeg", "-y",
+            *ffmpeg_resource_args(),
             "-i", safe(file_list[0]),
             "-vf", "fps=30,setsar=1,eq=contrast=1.02:brightness=0.01:saturation=1.05",
             *h264_video_args(quality="concat"),
@@ -274,6 +302,7 @@ def concat_videos_smooth(file_list, output, transition_duration=0.0):
     cmd = [
         "ffmpeg",
         "-y",
+        *ffmpeg_resource_args(),
         *inputs,
         "-filter_complex",
         filter_complex,
@@ -375,7 +404,7 @@ def apply_lut(video_in, video_out, lut_file="lut/aquaverse_fun.cube"):
     contrast = 1.06
     saturation = 1.18
     gamma = 1.02
-    # If a lot of highlights/shadows already clipped, back off to avoid "ภาพแตก"
+    # If a lot of highlights/shadows already clipped, back off to avoid ""
     if hi_clip > 0.020 or lo_clip > 0.020:
         contrast = 1.03
         saturation = 1.12
@@ -390,6 +419,7 @@ def apply_lut(video_in, video_out, lut_file="lut/aquaverse_fun.cube"):
     cmd = [
         "ffmpeg",
         "-y",
+        *ffmpeg_resource_args(),
         "-i",
         safe(video_in),
         "-vf",
@@ -405,7 +435,7 @@ def apply_lut(video_in, video_out, lut_file="lut/aquaverse_fun.cube"):
     run(cmd)
 
 def create_outro(bg_color="#2b497e", duration=2, out_path="outro.mp4"):
-    # convert hex (#2b497e) → 0x2b497e
+    # convert hex (#2b497e)  0x2b497e
     hex_color = "0x" + bg_color.strip("#")
 
     cmd = [
@@ -440,6 +470,7 @@ def concat_with_outro(video, outro, out_final):
 
     cmd = [
         "ffmpeg", "-y",
+        *ffmpeg_resource_args(),
         "-f", "concat",
         "-safe", "0",
         "-i", "concat_outro.txt",
@@ -460,6 +491,7 @@ def create_outro_sized(bg_color="#2b497e", duration=2, out_path="outro.mp4", siz
     cmd = [
         "ffmpeg",
         "-y",
+        *ffmpeg_resource_args(),
         "-f",
         "lavfi",
         "-i",
@@ -499,6 +531,7 @@ def overlay_logo_scaled(bg_video, logo_path, out_path, logo_scale=0.6):
     cmd = [
         "ffmpeg",
         "-y",
+        *ffmpeg_resource_args(),
         "-i",
         safe(bg_video),
         "-i",
@@ -553,6 +586,7 @@ def export_ratios(input_video, out_dir: Path):
     o916 = out_dir / "final_9x16.mp4"
     cmd916 = [
         "ffmpeg", "-y",
+        *ffmpeg_resource_args(),
         "-i", safe(input_video),
         "-vf", "scale=1080:1920:force_original_aspect_ratio=increase,crop=1080:1920,setsar=1",
         "-map", "0:v",
@@ -565,6 +599,7 @@ def export_ratios(input_video, out_dir: Path):
     o169 = out_dir / "final_16x9.mp4"
     cmd169 = [
         "ffmpeg", "-y",
+        *ffmpeg_resource_args(),
         "-i", safe(input_video),
         "-vf", "scale=1920:1080:force_original_aspect_ratio=increase,crop=1920:1080,setsar=1",
         "-map", "0:v",
@@ -643,10 +678,19 @@ def h264_video_args(*, quality: str = "normal"):
     """
     enc = get_h264_encoder()
     if enc == "h264_nvenc":
-        preset = {"cut": "p3", "concat": "p4", "grade": "p5", "final": "p5"}.get(quality, "p4")
-        cq = {"cut": "23", "concat": "22", "grade": "19", "final": "20"}.get(quality, "22")
+        if low_resource_mode():
+            preset = {"cut": "p2", "concat": "p3", "grade": "p4", "final": "p4"}.get(quality, "p3")
+            cq = {"cut": "26", "concat": "25", "grade": "23", "final": "24"}.get(quality, "25")
+        else:
+            preset = {"cut": "p3", "concat": "p4", "grade": "p5", "final": "p5"}.get(quality, "p4")
+            cq = {"cut": "23", "concat": "22", "grade": "19", "final": "20"}.get(quality, "22")
         return ["-c:v", "h264_nvenc", "-preset", preset, "-cq", cq, "-b:v", "0"]
 
-    preset = {"cut": "veryfast", "concat": "veryfast", "grade": "medium", "final": "veryfast"}.get(quality, "veryfast")
-    crf = {"cut": "20", "concat": "20", "grade": "18", "final": "20"}.get(quality, "20")
+    if low_resource_mode():
+        preset = {"cut": "ultrafast", "concat": "ultrafast", "grade": "veryfast", "final": "veryfast"}.get(quality, "veryfast")
+        crf = {"cut": "26", "concat": "26", "grade": "23", "final": "24"}.get(quality, "24")
+    else:
+        preset = {"cut": "veryfast", "concat": "veryfast", "grade": "medium", "final": "veryfast"}.get(quality, "veryfast")
+        crf = {"cut": "20", "concat": "20", "grade": "18", "final": "20"}.get(quality, "20")
     return ["-c:v", "libx264", "-preset", preset, "-crf", crf]
+
